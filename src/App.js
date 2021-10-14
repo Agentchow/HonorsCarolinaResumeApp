@@ -1,4 +1,4 @@
-import Main from './componenets/Main';
+import Main from './components/Main';
 import { Box } from '@mui/system';
 import './App.css';
 import { Component } from 'react';
