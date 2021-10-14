@@ -6,7 +6,7 @@ import { Component } from 'react';
 function App() {
   return (
       <Box>
-        {/* <Main/> */}
+        <Main/>
       </Box>
   );
 }
