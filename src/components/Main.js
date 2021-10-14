@@ -7,7 +7,6 @@ import { DataGrid } from "@mui/x-data-grid";
 
 export default function Main() {
 
-
     const [auth, setAuth] = React.useState(false);
     const [openModal, setOpenModal] = React.useState(false);
 
@@ -152,7 +151,7 @@ export default function Main() {
 
     return (
         <div>
-            <header>
+            {/* <header>
                 <AppBar>
                     <Toolbar>
                         <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}><Home/></IconButton>
@@ -213,7 +212,7 @@ export default function Main() {
                     />
                 </div>}
 
-            </Box>}
+            </Box>} */}
         </div>
 
     )
