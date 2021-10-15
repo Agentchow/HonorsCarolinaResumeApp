@@ -1,9 +1,9 @@
-// import { AppBar, Toolbar, Typography, Modal, Box, TextField, List, Button, IconButton } from "@mui/material";
+import { AppBar, Toolbar, Typography, Modal, Box, TextField, List, Button, IconButton } from "@mui/material";
 // import { Document } from "react-pdf";
-// import { Home } from "@mui/icons-material";
-// import React from "react";
-// import axios from "axios";
-// import { DataGrid } from "@mui/x-data-grid";
+import { Home } from "@mui/icons-material";
+import React from "react";
+import axios from "axios";
+import { DataGrid } from "@mui/x-data-grid";
 
 export default function Main() {
 
