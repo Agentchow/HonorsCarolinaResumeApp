@@ -8,7 +8,7 @@ function App() {
   return (
       <Box>
         box
-        <Main/>
+        {/* <Main/> */}
       </Box>
   );
 }
