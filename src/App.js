@@ -7,8 +7,8 @@ function App() {
   console.log("appstarted")
   return (
       <Box>
-        {/* <Main/> */}
-        test
+        box
+        <Main/>
       </Box>
   );
 }
