@@ -9,6 +9,7 @@ RUN npm install
 COPY . /app
 
 RUN npm run build
+RUN npm start
 
 #Run Steps
 FROM nginx:1.19.8-alpine  
