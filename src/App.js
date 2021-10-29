@@ -7,7 +7,7 @@ function App() {
   console.log("appstarted")
   return (
       <Box>
-        {/* <Main/> */}
+        <Main/>
       </Box>
   );
 }
