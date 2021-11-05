@@ -1,39 +1,155 @@
-import { AppBar, Toolbar, Typography, Modal, Box, TextField, List, Button, IconButton, Container, Grid } from "@mui/material";
-import { Document } from "react-pdf";
+import { AppBar, Toolbar, Typography, Modal, Box, TextField, Button, IconButton } from "@mui/material";
 import { Home } from "@mui/icons-material";
 import React from "react";
 import axios from "axios";
 import { DataGrid } from "@mui/x-data-grid";
+import ClearIcon from '@material-ui/icons/Clear';
+import SearchIcon from '@material-ui/icons/Search';
+import { createTheme } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
+import PropTypes from 'prop-types';
+import Unauthenticated from "./Unauthenticated";
+
+
+function escapeRegExp(value) {
+    return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
+
+const defaultTheme = createTheme();
+const useStyles = makeStyles(
+    (theme) => ({
+        root: {
+            padding: theme.spacing(0.5, 0.5, 0),
+            justifyContent: 'space-between',
+            display: 'flex',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+        },
+        textField: {
+            [theme.breakpoints.down('xs')]: {
+                width: '100%',
+            },
+            margin: theme.spacing(1, 0.5, 1.5),
+            '& .MuiSvgIcon-root': {
+                marginRight: theme.spacing(0.5),
+            },
+            '& .MuiInput-underline:before': {
+                borderBottom: `1px solid ${theme.palette.divider}`,
+            },
+        },
+    }),
+    { defaultTheme },
+);
+
+// Search Toolbar Code
+QuickSearchToolbar.propTypes = {
+    clearSearch: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    value: PropTypes.string.isRequired,
+};
+
+function QuickSearchToolbar(props) {
+    const classes = useStyles();
+    return (
+        <div className={classes.root}>
+            <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="h6" component="h5">
+                Search
+            </Typography>
+            <TextField variant="standard" value={props.value} onChange={props.onChange} placeholder="Search…" className={classes.textField}
+                InputProps={{ startAdornment: <SearchIcon fontSize="small" />, endAdornment: (
+                    <IconButton title="Clear" aria-label="Clear" size="small" style={{ visibility: props.value ? 'visible' : 'hidden' }} onClick={props.clearSearch}>
+                        <ClearIcon fontSize="small" />
+                    </IconButton>),
+                }}
+            />
+        </div>
+    );
+}
 
 export default function Main() {
 
     const [auth, setAuth] = React.useState(false);
+    const [studentAuth, setStudentAuth] = React.useState(false);
     const [openModal, setOpenModal] = React.useState(false);
 
-    const [resumeView, setResumeView] =  React.useState(false);
-    
-    let url = null;
-    let showResume = (uri) => {setResumeView(true); url = uri};
-    let closeResume = () => {setResumeView(false); url = null};
-
-    const loginOpen = () =>  setOpenModal(true);
+    const loginOpen = () => setOpenModal(true);
     const loginClose = () => setOpenModal(false);
 
-    const logIn = () => {setAuth(true)};
+    const logIn = () => { setAuth(true) };
+    const studentLogIn = () => { setStudentAuth(true); setStatus("pending"); }
     const logOut = () => {
         setAuth(false);
+        setStudentAuth(false);
+    };
+
+    const [searchText, setSearchText] = React.useState('');
+    const requestSearch = (searchValue, type) => {
+        setSearchText(searchValue);
+        const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
+        if(type === "student") {
+            const filteredRows = approved.filter((row) => {
+                return Object.keys(row).some((field) => {
+                    return searchRegex.test(row[field].toString());
+                });
+            });
+            setStudentApprovedRows(filteredRows);
+        } else if (type === "approved") {
+            const filteredRows = approved.filter((row) => {
+                return Object.keys(row).some((field) => {
+                    return searchRegex.test(row[field].toString());
+                });
+            });
+            setApprovedFiltered(filteredRows);
+        } else {
+            const filteredRows = pending.filter((row) => {
+                return Object.keys(row).some((field) => {
+                    return searchRegex.test(row[field].toString());
+                });
+            });
+            setPendingFiltered(filteredRows);
+        }
+    };
+
+    const requestSearch1 = (searchValue, type) => {
+        setSearchText(searchValue);
+        const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
+        if(type === "student") {
+            const filteredRows = approved.filter((row) => {
+                return Object.keys(row).some((field) => {
+                    return searchRegex.test(row[field].toString());
+                });
+            });
+            setStudentApprovedRows(filteredRows);
+        } else if (type === "approved") {
+            const filteredRows = approved.filter((row) => {
+                return Object.keys(row).some((field) => {
+                    return searchRegex.test(row[field].toString());
+                });
+            });
+            setApprovedFiltered(filteredRows);
+        } else {
+            const filteredRows = pending.filter((row) => {
+                return Object.keys(row).some((field) => {
+                    return searchRegex.test(row[field].toString());
+                });
+            });
+            setPendingFiltered(filteredRows);
+        }
     };
 
     const [approved, setApproved] = React.useState(null);
     const [pending, setPending] = React.useState(null);
+    const [studentApprovedRows, setStudentApprovedRows] = React.useState();
+    const [approvedFiltered, setApprovedFiltered] = React.useState(approved);
+    const [pendingFiltered, setPendingFiltered] = React.useState(pending);
 
     const getData = () => {
-        axios.get("https://node-mongodb-sample-git-rnarveka.apps.cloudapps.unc.edu/resumes").then(res => {
+        axios.get("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes").then(res => {
             console.log(res.data);
             let rowsApproved = [];
             let rowsPending = [];
             res.data.forEach(element => {
-                if(element.approved === "approved") {
+                if (element.approved === "approved") {
                     rowsApproved.push({
                         id: element._id,
                         name: element.name,
@@ -51,39 +167,49 @@ export default function Main() {
                 }
             });
             setApproved(rowsApproved);
+            setStudentApprovedRows(rowsApproved);
+            setApprovedFiltered(rowsApproved)
             setPending(rowsPending);
+            setPendingFiltered(rowsPending)
         })
     }
-    
-    const modalSubmit = () => { 
+
+    const adminSubmit = () => {
         getData();
-        loginClose(); 
+        loginClose();
         logIn();
     }
 
-    
+    const studentSubmit = () => {
+        getData();
+        loginClose();
+        studentLogIn();
+    }
+
     const [modalPost, setModalPost] = React.useState(false);
 
-    const openPost = () =>  setModalPost(true);
+    const openPost = () => setModalPost(true);
     const closePost = () => setModalPost(false);
 
     const [name, setName] = React.useState(null);
     const [link, setLink] = React.useState(null);
     const [major, setMajor] = React.useState(null);
     const [tags, setTags] = React.useState(null);
-    const [status, setStatus] = React.useState(null);
+    const [status, setStatus] = React.useState("pending");
 
     const [currentId, setCurrentId] = React.useState(null);
 
+
+
     const deleteResume = () => {
-        axios.delete("https://node-mongodb-sample-git-rnarveka.apps.cloudapps.unc.edu/resumes/" + currentId).then(res => {
+        axios.delete("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes/" + currentId).then(res => {
             setCurrentId(null);
             getData();
         })
     }
 
     const updateResume = () => {
-        axios.put("https://node-mongodb-sample-git-rnarveka.apps.cloudapps.unc.edu/resumes/" + currentId, {
+        axios.put("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes/" + currentId, {
             "approved": "approved"
         }).then(res => {
             setCurrentId(null);
@@ -93,12 +219,12 @@ export default function Main() {
 
 
     const postSubmit = () => {
-       console.log(name + link+  major + tags+ status);
-       axios.post("https://node-mongodb-sample-git-rnarveka.apps.cloudapps.unc.edu/resumes",{
-            "name" : name,
-            "link" : link,
-            "major" : major,
-            "tags" : tags,
+        console.log(name + link + major + tags + status);
+        axios.post("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes", {
+            "name": name,
+            "link": link,
+            "major": major,
+            "tags": tags,
             "approved": status
         }).then(res => {
             console.log(res.data);
@@ -132,7 +258,8 @@ export default function Main() {
                         variant="contained"
                         size="small"
                         style={{ marginLeft: 16 }}
-                        href={col.value}>View</Button>
+                        href={col.value}
+                        target="_blank">View</Button>
                     <Button
                         variant="contained"
                         size="small"
@@ -152,13 +279,15 @@ export default function Main() {
         { field: 'id', headerName: 'ID', width: 100 },
         { field: 'name', headerName: 'Name', width: 150 },
         { field: 'major', headerName: 'Major', width: 200 },
-        { field: 'resume', headerName: 'Resume', width: 195,
+        {
+            field: 'resume', headerName: 'Resume', width: 195,
             renderCell: (col) => (
                 <strong>
                     <Button
-                        onClick={showResume}
                         variant="contained"
                         size="small"
+                        href={col.value}
+                        target="_blank"
                         style={{ marginLeft: 16 }}>View</Button>
                     <Button
                         variant="contained"
@@ -171,16 +300,35 @@ export default function Main() {
         { field: 'tags', headerName: 'Tags', width: 400 }
     ];
 
+    const studentApproved = [
+        { field: 'id', headerName: 'ID', width: 100 },
+        { field: 'name', headerName: 'Name', width: 150 },
+        { field: 'major', headerName: 'Major', width: 200 },
+        {
+            field: 'resume', headerName: 'Resume', width: 195,
+            renderCell: (col) => (
+                <strong>
+                    <Button
+                        href=""
+                        variant="contained"
+                        size="small"
+                        style={{ marginLeft: 16 }}>View</Button>
+                </strong>
+            )
+        },
+        { field: 'tags', headerName: 'Tags', width: 400 }
+    ];
+
     return (
         <div>
             <header>
                 <AppBar>
                     <Toolbar>
-                        <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}><Home/></IconButton>
-                        <Typography variant="h6" component="div" sx={{ flexGrow : 1}}>
+                        <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}><Home /></IconButton>
+                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                             Honors Carolina Resume App
                         </Typography>
-                        <Button onClick={!auth? loginOpen : logOut} color= "inherit">{auth? "Logout" : "Login"}</Button>
+                        <Button onClick={(auth || studentAuth) ? logOut : loginOpen} color="inherit">{(auth || studentAuth) ? "Logout" : "Login"}</Button>
                     </Toolbar>
                 </AppBar>
                 <Modal open={openModal} onClose={loginClose}>
@@ -189,121 +337,130 @@ export default function Main() {
                             Login
                         </Typography>
                         <TextField id="user" label="Username" variant="outlined" />
-                        <TextField id="pass" label="Password" variant="outlined" type="password"/>
-                        <Button onClick={modalSubmit} color = "inherit">Login</Button>
+                        <TextField id="pass" label="Password" variant="outlined" type="password" />
+                        <Button onClick={adminSubmit} color="inherit">Admin</Button>
+                        <Button onClick={studentSubmit} color="inherit">Student</Button>
                     </Box>
                 </Modal>
-                 <Modal open={modalPost} onClose={closePost}>
+                <Modal open={modalPost} onClose={closePost}>
                     <Box sx={style} component="form">
                         <Typography id="modal-modal-title" variant="h6" component="h2">
                             New Resume
                         </Typography>
-                       <TextField id="name" label="Name" variant="outlined" onInput={ e=> setName(e.target.value)}/>
-                        <TextField id="link" label="Resume Link" variant="outlined" onInput={ e=> setLink(e.target.value)}/>
-                        <TextField id="tag" label="Tags" variant="outlined" onInput={ e=> setTags(e.target.value)}/>
-                        <TextField id="status" label="Approved/Pending" variant="outlined" onInput={ e=> setStatus(e.target.value)}/>
-                        <TextField id="major" label="Major" variant="outlined" onInput={ e=> setMajor(e.target.value)}/>
- 
-                        <Button onClick={postSubmit} color = "inherit">Post Resume</Button>
-                    </Box>
-                </Modal> 
-            </header>
-            {!auth && <Box m={6} pl={4} pr={4}>
-                <Typography mt={2} mb={2} pb={3} pt={3} id="modal-modal-title" variant="h6" component="h5">
-                    Welcome to the Honors Carolina Resume App! 
-                </Typography>
-                <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="p" component="p">
-                    This is a bare bones skeleton of the app. At the moment the authentication via Shiolbeth sso is not setup
-                    so put in any value for login/password
+                        <TextField id="name" label="Name" variant="outlined" onInput={e => setName(e.target.value)} />
+                        <TextField id="link" label="Resume Link" variant="outlined" onInput={e => setLink(e.target.value)} />
+                        <TextField id="tag" label="Tags" variant="outlined" onInput={e => setTags(e.target.value)} />
+                        {auth && <TextField id="status" label="Approved/Pending" variant="outlined" onInput={e => setStatus(e.target.value)} />}
+                        <TextField id="major" label="Major" variant="outlined" onInput={e => setMajor(e.target.value)} />
 
-                    Our backend endpoint is hosted on an ExpressJS API on Openshift @
-                    https://node-mongodb-sample-git-rnarveka.apps.cloudapps.unc.edu/resumes
-                </Typography>
-                <Typography mt={2} mb={2} pb={3} pt={3} id="modal-modal-title" variant="h6" component="h5">
-                    API
-                </Typography>
-                <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="p" component="p">
-                   Exposed Endpoints
-                </Typography>
-                <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="p" component="p">
-                    GET: https://node-mongodb-sample-git-rnarveka.apps.cloudapps.unc.edu/resumes
-                </Typography>
-                <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="p" component="p">
-                    GET: https://node-mongodb-sample-git-rnarveka.apps.cloudapps.unc.edu/resumes/mongoResumeID
-                </Typography>
-                <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="p" component="p">
-                    POST: https://node-mongodb-sample-git-rnarveka.apps.cloudapps.unc.edu/resumes/
-                </Typography>
-                <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="p" component="p">
-                    DELTE: https://node-mongodb-sample-git-rnarveka.apps.cloudapps.unc.edu/resumes/mongoResumeID
-                </Typography>
-                <Typography mt={2} mb={2} pb={3} pt={3} id="modal-modal-title" variant="h6" component="h5">
-                    Application Architecture
-                </Typography>
-                <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="p" component="p">
-                    This app runs primarily on UNC CloudApps based on the OpenShift 4 Platform. The Backend ExpressJS
-                    app exposes RestFull endpoints and enables data transfer to MongoDB. The Front End is a React App based
-                    on MaterialUI and will soon be hosted on OpenShift after ITS bumps up our memmory requirments for Openshift
-                    Pods.
-                </Typography>
-            </Box>}
-            {auth && <Box m={6} pl={4} pr={4}>
-                <Modal open={resumeView} onClose={closeResume}>
-                    <Box sx={style} component="form">
-                        <Typography id="modal-modal-title" variant="h6" component="h2">
-                            Login
-                        </Typography>
-                        <Document file="https://drive.google.com/file/d/1hezwS7qfRwCvbGV8wNhLqvqXQxQp7-dH/view?usp=sharing"></Document>
+                        <Button onClick={postSubmit} color="inherit">Post Resume</Button>
                     </Box>
                 </Modal>
+            </header>
+            {!auth && !studentAuth && <Unauthenticated></Unauthenticated>}
+
+            {/* STUDENT USER VIEW */}
+            {/* This view will allow students to search resumes, and upload their own */}
+            {/* Students will have Read and Updates access to all resume tables */}
+            {studentAuth && <Box m={6} pl={4} pr={4}>
                 <Box mt={2} mb={2} pt={4}>
-                    <Button  onClick={openPost} color = "inherit">Add Resume</Button>
+                    <Button onClick={openPost} color="inherit">Add Resume</Button>
+                </Box>
+                <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="h6" component="h5">
+                    Student Resumes
+                </Typography>
+                {approved != null &&
+                    <div style={{ height: 400, width: '100%' }}>
+                        <DataGrid
+                            components={{ Toolbar: QuickSearchToolbar }}
+                            rows={studentApprovedRows == null ? approved :studentApprovedRows}
+                            columns={studentApproved}
+                            pageSize={5}
+                            rowsPerPageOptions={[5]}
+                            checkboxSelection
+                            onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1]) }}
+                            pb={2}
+                            componentsProps={{
+                                toolbar: {
+                                    value: searchText,
+                                    onChange: (event) => requestSearch(event.target.value, "student"),
+                                    clearSearch: () => requestSearch('', "student"),
+                                },
+                            }}
+                        />
+                    </div>}
+            </Box>}
+
+            {/* ADMIN USER VIEW */}
+            {/* This view will show all approved and pending resumes */}
+            {/* ADMINs will have CRUD access to all resume tables */}
+            {auth && <Box m={6} pl={4} pr={4}>
+                <Box mt={2} mb={2} pt={4}>
+                    <Button onClick={openPost} color="inherit">Add Resume</Button>
                 </Box>
                 <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="h6" component="h5">
                     Approved Resumes
                 </Typography>
-                {approved != null && 
-                <div style={{height: 400, width: '100%'}}>
-                    <DataGrid
-                        rows={approved}
-                        columns={columnsApproved}
-                        pageSize={5}
-                        rowsPerPageOptions={[5]}
-                        checkboxSelection
-                        onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1])}}
-                        pb={2}
-                    />
-                </div>}
+                {approved != null &&
+                    <div style={{ height: 400, width: '100%' }}>
+                        <DataGrid
+                            components={{ Toolbar: QuickSearchToolbar }}
+                            rows={approvedFiltered == null ? approved : approvedFiltered}
+                            columns={columnsApproved}
+                            pageSize={5}
+                            rowsPerPageOptions={[5]}
+                            checkboxSelection
+                            onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1]) }}
+                            pb={2}
+                            componentsProps={{
+                                toolbar: {
+                                    value: searchText,
+                                    onChange: (event) => requestSearch1(event.target.value, "approved"),
+                                    clearSearch: () => requestSearch('', "approved"),
+                                },
+                            }}
+                        />
+                    </div>}
                 <Typography mt={2} mb={2} pb={3} pt={3} id="modal-modal-title" variant="h6" component="h5">
-                    Pending Resumes 
+                    Pending Resumes
                 </Typography>
 
-                {pending != null && 
-                <div style={{height: 400, width: '100%'}}>
-                    <DataGrid
-                        rows={pending}
-                        columns={columnsPending}
-                        pageSize={5}
-                        rowsPerPageOptions={[5]}
-                        checkboxSelection
-                        onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1])}}
-                        pb={2}
-                    />
-                </div>}
-                
+                {pending != null &&
+                    <div style={{ height: 400, width: '100%' }}>
+                        <DataGrid
+                            components={{ Toolbar: QuickSearchToolbar }}
+                            rows={pendingFiltered == null ? pending : pendingFiltered}
+                            columns={columnsPending}
+                            pageSize={5}
+                            rowsPerPageOptions={[5]}
+                            checkboxSelection
+                            onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1]) }}
+                            pb={2}
+                            componentsProps={{
+                                toolbar: {
+                                    value: searchText,
+                                    onChange: (event) => requestSearch(event.target.value, "pending"),
+                                    clearSearch: () => requestSearch('', "pending"),
+                                },
+                            }}
+                        />
+                    </div>}
+
             </Box>}
             <footer>
-                <Box bgcolor="#2196f3" color="white"  pl={4} pr={4}>
-                        <Box ml={2} mr={2} borderBottom={1} p={1}>
-                            <Typography mt={2} id="modal-modal-title" variant="h6" component="h5">
-                                About
-                            </Typography>
-                        </Box>
-                        <Box ml={2} mr={2} pl={1} pr={1}>COMP 523 Project</Box>
-                        <Box ml={2} mr={2} pl={1} pr={1} pb={3}>Client: Honors Carolina</Box>
+                <Box bgcolor="#2196f3" color="white" pl={4} pr={4}>
+                    <Box ml={2} mr={2} borderBottom={1} p={1}>
+                        <Typography mt={2} id="modal-modal-title" variant="h6" component="h5">
+                            About
+                        </Typography>
+                    </Box>
+                    <Box ml={2} mr={2} pl={1} pr={1}>COMP 523 Project</Box>
+                    <Box ml={2} mr={2} pl={1} pr={1} pb={3}>Client: Honors Carolina</Box>
                 </Box>
             </footer>
         </div>
 
     )
 }
+
+
