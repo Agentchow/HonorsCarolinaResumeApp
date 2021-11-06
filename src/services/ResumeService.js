@@ -7,7 +7,12 @@ export function getAll() {
 }
 
 export function get(id) {
-    return axios.get(url + id)
+    try{
+        return axios.get(url + id)
+    }
+    catch (err) {
+        return err.response
+    }
 }
 
 export function post(name, link, major, tags, status) {
