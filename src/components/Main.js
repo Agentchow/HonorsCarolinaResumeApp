@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, Typography, Modal, Box, TextField, Button, IconButton } from "@mui/material";
+import { AppBar, Toolbar, Typography, Modal, Box, TextField, Button, IconButton, FormControlLabel, Checkbox } from "@mui/material";
 import { Home } from "@mui/icons-material";
 import React from "react";
 import axios from "axios";
@@ -14,6 +14,8 @@ import Unauthenticated from "./Unauthenticated";
 function escapeRegExp(value) {
     return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 }
+
+
 
 const defaultTheme = createTheme();
 const useStyles = makeStyles(
@@ -68,6 +70,19 @@ function QuickSearchToolbar(props) {
 
 export default function Main() {
 
+    const [checkBox, setCheckBox] = React.useState({
+        privacy: false
+    })
+    
+    const handleChange = (event) => {
+        setCheckBox({
+          ...checkBox,
+          [event.target.name]: event.target.checked,
+        });
+      };
+    
+    const { privacy } = checkBox;
+
     const [auth, setAuth] = React.useState(false);
     const [studentAuth, setStudentAuth] = React.useState(false);
     const [openModal, setOpenModal] = React.useState(false);
@@ -84,33 +99,6 @@ export default function Main() {
 
     const [searchText, setSearchText] = React.useState('');
     const requestSearch = (searchValue, type) => {
-        setSearchText(searchValue);
-        const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
-        if(type === "student") {
-            const filteredRows = approved.filter((row) => {
-                return Object.keys(row).some((field) => {
-                    return searchRegex.test(row[field].toString());
-                });
-            });
-            setStudentApprovedRows(filteredRows);
-        } else if (type === "approved") {
-            const filteredRows = approved.filter((row) => {
-                return Object.keys(row).some((field) => {
-                    return searchRegex.test(row[field].toString());
-                });
-            });
-            setApprovedFiltered(filteredRows);
-        } else {
-            const filteredRows = pending.filter((row) => {
-                return Object.keys(row).some((field) => {
-                    return searchRegex.test(row[field].toString());
-                });
-            });
-            setPendingFiltered(filteredRows);
-        }
-    };
-
-    const requestSearch1 = (searchValue, type) => {
         setSearchText(searchValue);
         const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
         if(type === "student") {
@@ -353,8 +341,9 @@ export default function Main() {
                         <TextField id="tag" label="Tags" variant="outlined" onInput={e => setTags(e.target.value)} />
                         {auth && <TextField id="status" label="Approved/Pending" variant="outlined" onInput={e => setStatus(e.target.value)} />}
                         <TextField id="major" label="Major" variant="outlined" onInput={e => setMajor(e.target.value)} />
-
-                        <Button onClick={postSubmit} color="inherit">Post Resume</Button>
+                        {studentAuth && <FormControlLabel control={ <Checkbox checked={privacy} onChange={handleChange} name="privacy" /> } label="By checking this box you agree to all privacy policies."/>}
+                        {auth && <Button onClick={postSubmit} color="inherit">Post Resume</Button> }
+                        {studentAuth && <Button disabled={!privacy} onClick={postSubmit} color="inherit">Post Resume</Button> }
                     </Box>
                 </Modal>
             </header>
@@ -416,7 +405,7 @@ export default function Main() {
                             componentsProps={{
                                 toolbar: {
                                     value: searchText,
-                                    onChange: (event) => requestSearch1(event.target.value, "approved"),
+                                    onChange: (event) => requestSearch(event.target.value, "approved"),
                                     clearSearch: () => requestSearch('', "approved"),
                                 },
                             }}
