@@ -10,13 +10,10 @@ import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 import Unauthenticated from "./Unauthenticated";
 
-
+// Data Grid Toolbar styles
 function escapeRegExp(value) {
     return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 }
-
-
-
 const defaultTheme = createTheme();
 const useStyles = makeStyles(
     (theme) => ({
@@ -49,7 +46,6 @@ QuickSearchToolbar.propTypes = {
     onChange: PropTypes.func.isRequired,
     value: PropTypes.string.isRequired,
 };
-
 function QuickSearchToolbar(props) {
     const classes = useStyles();
     return (
@@ -58,10 +54,11 @@ function QuickSearchToolbar(props) {
                 Search
             </Typography>
             <TextField variant="standard" value={props.value} onChange={props.onChange} placeholder="Search…" className={classes.textField}
-                InputProps={{ startAdornment: <SearchIcon fontSize="small" />, endAdornment: (
-                    <IconButton title="Clear" aria-label="Clear" size="small" style={{ visibility: props.value ? 'visible' : 'hidden' }} onClick={props.clearSearch}>
-                        <ClearIcon fontSize="small" />
-                    </IconButton>),
+                InputProps={{
+                    startAdornment: <SearchIcon fontSize="small" />, endAdornment: (
+                        <IconButton title="Clear" aria-label="Clear" size="small" style={{ visibility: props.value ? 'visible' : 'hidden' }} onClick={props.clearSearch}>
+                            <ClearIcon fontSize="small" />
+                        </IconButton>),
                 }}
             />
         </div>
@@ -70,26 +67,21 @@ function QuickSearchToolbar(props) {
 
 export default function Main() {
 
+    //State handlers for checkbox's
     const [checkBox, setCheckBox] = React.useState({
         privacy: false
     })
-    
     const handleChange = (event) => {
         setCheckBox({
-          ...checkBox,
-          [event.target.name]: event.target.checked,
+            ...checkBox,
+            [event.target.name]: event.target.checked,
         });
-      };
-    
+    };
     const { privacy } = checkBox;
 
+    // auth values, auth will be true for admin, studentAuth will be true for studentAuth
     const [auth, setAuth] = React.useState(false);
     const [studentAuth, setStudentAuth] = React.useState(false);
-    const [openModal, setOpenModal] = React.useState(false);
-
-    const loginOpen = () => setOpenModal(true);
-    const loginClose = () => setOpenModal(false);
-
     const logIn = () => { setAuth(true) };
     const studentLogIn = () => { setStudentAuth(true); setStatus("pending"); }
     const logOut = () => {
@@ -97,11 +89,39 @@ export default function Main() {
         setStudentAuth(false);
     };
 
+    //Modal handlers
+    const loginOpen = () => setOpenModal(true);
+    const loginClose = () => setOpenModal(false);
+    const [openModal, setOpenModal] = React.useState(false);
+    const [modalPost, setModalPost] = React.useState(false);
+    const openPost = () => setModalPost(true);
+    const closePost = () => setModalPost(false);
+
+    //Form value handlers
+    const [name, setName] = React.useState(null);
+    const [link, setLink] = React.useState(null);
+    const [major, setMajor] = React.useState(null);
+    const [tags, setTags] = React.useState(null);
+    const [status, setStatus] = React.useState("pending");
+
+    //Form Submit Actions
+    const adminSubmit = () => {
+        getData();
+        loginClose();
+        logIn();
+    }
+    const studentSubmit = () => {
+        getData();
+        loginClose();
+        studentLogIn();
+    }
+
+    //Search function for data grid
     const [searchText, setSearchText] = React.useState('');
     const requestSearch = (searchValue, type) => {
         setSearchText(searchValue);
         const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
-        if(type === "student") {
+        if (type === "student") {
             const filteredRows = approved.filter((row) => {
                 return Object.keys(row).some((field) => {
                     return searchRegex.test(row[field].toString());
@@ -125,12 +145,17 @@ export default function Main() {
         }
     };
 
+    //set data grid rows for each table
     const [approved, setApproved] = React.useState(null);
     const [pending, setPending] = React.useState(null);
     const [studentApprovedRows, setStudentApprovedRows] = React.useState();
     const [approvedFiltered, setApprovedFiltered] = React.useState(approved);
     const [pendingFiltered, setPendingFiltered] = React.useState(pending);
 
+    //set last checked row
+    const [currentId, setCurrentId] = React.useState(null);
+
+    //api functions
     const getData = () => {
         axios.get("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes").then(res => {
             console.log(res.data);
@@ -161,41 +186,12 @@ export default function Main() {
             setPendingFiltered(rowsPending)
         })
     }
-
-    const adminSubmit = () => {
-        getData();
-        loginClose();
-        logIn();
-    }
-
-    const studentSubmit = () => {
-        getData();
-        loginClose();
-        studentLogIn();
-    }
-
-    const [modalPost, setModalPost] = React.useState(false);
-
-    const openPost = () => setModalPost(true);
-    const closePost = () => setModalPost(false);
-
-    const [name, setName] = React.useState(null);
-    const [link, setLink] = React.useState(null);
-    const [major, setMajor] = React.useState(null);
-    const [tags, setTags] = React.useState(null);
-    const [status, setStatus] = React.useState("pending");
-
-    const [currentId, setCurrentId] = React.useState(null);
-
-
-
     const deleteResume = () => {
         axios.delete("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes/" + currentId).then(res => {
             setCurrentId(null);
             getData();
         })
     }
-
     const updateResume = () => {
         axios.put("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes/" + currentId, {
             "approved": "approved"
@@ -204,8 +200,6 @@ export default function Main() {
             getData()
         })
     }
-
-
     const postSubmit = () => {
         console.log(name + link + major + tags + status);
         axios.post("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes", {
@@ -221,6 +215,7 @@ export default function Main() {
         })
     }
 
+    //Data Grid Styling
     const style = {
         position: 'absolute',
         top: '50%',
@@ -234,6 +229,7 @@ export default function Main() {
         '& > :not(style)': { m: 1, width: '25ch' }
     };
 
+    //Column setup for Pending DataGrid
     const columnsPending = [
         { field: 'id', headerName: 'ID', width: 100 },
         { field: 'name', headerName: 'Name', width: 150 },
@@ -263,6 +259,7 @@ export default function Main() {
         },
     ];
 
+    //Column setup for Approved DataGrid
     const columnsApproved = [
         { field: 'id', headerName: 'ID', width: 100 },
         { field: 'name', headerName: 'Name', width: 150 },
@@ -288,6 +285,7 @@ export default function Main() {
         { field: 'tags', headerName: 'Tags', width: 400 }
     ];
 
+    //Column setup for Student DataGrid
     const studentApproved = [
         { field: 'id', headerName: 'ID', width: 100 },
         { field: 'name', headerName: 'Name', width: 150 },
@@ -298,7 +296,7 @@ export default function Main() {
                 <strong>
                     <Button
                         href={col.value}
-                        target = "_blank"
+                        target="_blank"
                         variant="contained"
                         size="small"
                         style={{ marginLeft: 16 }}>View</Button>
@@ -333,17 +331,15 @@ export default function Main() {
                 </Modal>
                 <Modal open={modalPost} onClose={closePost}>
                     <Box sx={style} component="form">
-                        <Typography id="modal-modal-title" variant="h6" component="h2">
-                            New Resume
-                        </Typography>
+                        <Typography id="modal-modal-title" variant="h6" component="h2"> New Resume </Typography>
                         <TextField id="name" label="Name" variant="outlined" onInput={e => setName(e.target.value)} />
                         <TextField id="link" label="Resume Link" variant="outlined" onInput={e => setLink(e.target.value)} />
                         <TextField id="tag" label="Tags" variant="outlined" onInput={e => setTags(e.target.value)} />
                         {auth && <TextField id="status" label="Approved/Pending" variant="outlined" onInput={e => setStatus(e.target.value)} />}
                         <TextField id="major" label="Major" variant="outlined" onInput={e => setMajor(e.target.value)} />
-                        {studentAuth && <FormControlLabel control={ <Checkbox checked={privacy} onChange={handleChange} name="privacy" /> } label="By checking this box you agree to all privacy policies."/>}
-                        {auth && <Button onClick={postSubmit} color="inherit">Post Resume</Button> }
-                        {studentAuth && <Button disabled={!privacy} onClick={postSubmit} color="inherit">Post Resume</Button> }
+                        {studentAuth && <FormControlLabel control={<Checkbox checked={privacy} onChange={handleChange} name="privacy" />} label="By checking this box you agree to all privacy policies." />}
+                        {auth && <Button onClick={postSubmit} color="inherit">Post Resume</Button>}
+                        {studentAuth && <Button disabled={!privacy} onClick={postSubmit} color="inherit">Post Resume</Button>}
                     </Box>
                 </Modal>
             </header>
@@ -361,23 +357,16 @@ export default function Main() {
                 </Typography>
                 {approved != null &&
                     <div style={{ height: 400, width: '100%' }}>
-                        <DataGrid
-                            components={{ Toolbar: QuickSearchToolbar }}
-                            rows={studentApprovedRows == null ? approved :studentApprovedRows}
-                            columns={studentApproved}
-                            pageSize={5}
-                            rowsPerPageOptions={[5]}
-                            checkboxSelection
-                            onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1]) }}
-                            pb={2}
+                        <DataGrid components={{ Toolbar: QuickSearchToolbar }} rows={studentApprovedRows == null ? approved : studentApprovedRows}
+                            columns={studentApproved} pageSize={5} rowsPerPageOptions={[5]} checkboxSelection
+                            onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1]) }} pb={2}
                             componentsProps={{
                                 toolbar: {
                                     value: searchText,
                                     onChange: (event) => requestSearch(event.target.value, "student"),
                                     clearSearch: () => requestSearch('', "student"),
                                 },
-                            }}
-                        />
+                            }} />
                     </div>}
             </Box>}
 
@@ -394,46 +383,33 @@ export default function Main() {
                 {approved != null &&
                     <div style={{ height: 400, width: '100%' }}>
                         <DataGrid
-                            components={{ Toolbar: QuickSearchToolbar }}
-                            rows={approvedFiltered == null ? approved : approvedFiltered}
-                            columns={columnsApproved}
-                            pageSize={5}
-                            rowsPerPageOptions={[5]}
-                            checkboxSelection
-                            onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1]) }}
-                            pb={2}
+                            components={{ Toolbar: QuickSearchToolbar }} rows={approvedFiltered == null ? approved : approvedFiltered}
+                            columns={columnsApproved} pageSize={5} owsPerPageOptions={[5]} checkboxSelection
+                            onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1]) }} pb={2}
                             componentsProps={{
                                 toolbar: {
                                     value: searchText,
                                     onChange: (event) => requestSearch(event.target.value, "approved"),
                                     clearSearch: () => requestSearch('', "approved"),
                                 },
-                            }}
-                        />
+                            }} />
                     </div>}
                 <Typography mt={2} mb={2} pb={3} pt={3} id="modal-modal-title" variant="h6" component="h5">
                     Pending Resumes
                 </Typography>
-
                 {pending != null &&
                     <div style={{ height: 400, width: '100%' }}>
                         <DataGrid
-                            components={{ Toolbar: QuickSearchToolbar }}
-                            rows={pendingFiltered == null ? pending : pendingFiltered}
-                            columns={columnsPending}
-                            pageSize={5}
-                            rowsPerPageOptions={[5]}
-                            checkboxSelection
-                            onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1]) }}
-                            pb={2}
+                            components={{ Toolbar: QuickSearchToolbar }} rows={pendingFiltered == null ? pending : pendingFiltered}
+                            columns={columnsPending} pageSize={5} rowsPerPageOptions={[5]} checkboxSelection
+                            onSelectionModelChange={(id) => { setCurrentId(id[id.length - 1]) }} pb={2}
                             componentsProps={{
                                 toolbar: {
                                     value: searchText,
                                     onChange: (event) => requestSearch(event.target.value, "pending"),
                                     clearSearch: () => requestSearch('', "pending"),
                                 },
-                            }}
-                        />
+                            }} />
                     </div>}
 
             </Box>}
@@ -449,7 +425,6 @@ export default function Main() {
                 </Box>
             </footer>
         </div>
-
     )
 }
 
