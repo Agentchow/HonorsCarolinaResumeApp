@@ -309,7 +309,8 @@ export default function Main() {
             renderCell: (col) => (
                 <strong>
                     <Button
-                        href=""
+                        href={col.value}
+                        target = "_blank"
                         variant="contained"
                         size="small"
                         style={{ marginLeft: 16 }}>View</Button>
