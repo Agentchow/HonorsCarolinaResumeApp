@@ -1,14 +1,14 @@
+import React from "react";
+import PropTypes from 'prop-types';
+import Unauthenticated from "./Unauthenticated";
 import { AppBar, Toolbar, Typography, Modal, Box, TextField, Button, IconButton, FormControlLabel, Checkbox } from "@mui/material";
 import { Home } from "@mui/icons-material";
-import React from "react";
-import axios from "axios";
 import { DataGrid } from "@mui/x-data-grid";
 import ClearIcon from '@material-ui/icons/Clear';
 import SearchIcon from '@material-ui/icons/Search';
 import { createTheme } from '@material-ui/core/styles';
 import { makeStyles } from '@material-ui/styles';
-import PropTypes from 'prop-types';
-import Unauthenticated from "./Unauthenticated";
+import { getAll, post, update, del } from "../services/ResumeService";
 
 // Data Grid Toolbar styles
 function escapeRegExp(value) {
@@ -157,8 +157,7 @@ export default function Main() {
 
     //api functions
     const getData = () => {
-        axios.get("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes").then(res => {
-            console.log(res.data);
+        getAll().then(res => {
             let rowsApproved = [];
             let rowsPending = [];
             res.data.forEach(element => {
@@ -187,29 +186,19 @@ export default function Main() {
         })
     }
     const deleteResume = () => {
-        axios.delete("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes/" + currentId).then(res => {
+        del(currentId).then(res => {
             setCurrentId(null);
             getData();
         })
     }
     const updateResume = () => {
-        axios.put("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes/" + currentId, {
-            "approved": "approved"
-        }).then(res => {
+        update(currentId).then(res => {
             setCurrentId(null);
             getData()
         })
     }
     const postSubmit = () => {
-        console.log(name + link + major + tags + status);
-        axios.post("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes", {
-            "name": name,
-            "link": link,
-            "major": major,
-            "tags": tags,
-            "approved": status
-        }).then(res => {
-            console.log(res.data);
+        post(name, link, major, tags, status).then(res => {
             closePost();
             getData();
         })
