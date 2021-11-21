@@ -95,7 +95,8 @@ export default function Main() {
     const [openModal, setOpenModal] = React.useState(false);
     const [modalPost, setModalPost] = React.useState(false);
     const openPost = () => setModalPost(true);
-    const closePost = () => setModalPost(false);
+    const closePost = () =>  { setModalPost(false); setPostError(null);  setName(null); setStatus("pending");
+        setLink(null); setMajor(null); setTags(null);};
 
     //Form value handlers
     const [name, setName] = React.useState(null);
@@ -103,6 +104,7 @@ export default function Main() {
     const [major, setMajor] = React.useState(null);
     const [tags, setTags] = React.useState(null);
     const [status, setStatus] = React.useState("pending");
+    const [postError, setPostError] = React.useState(null);
 
     //Form Submit Actions
     const adminSubmit = () => {
@@ -194,13 +196,15 @@ export default function Main() {
     const updateResume = () => {
         update(currentId).then(res => {
             setCurrentId(null);
-            getData()
+            getData();
         })
     }
     const postSubmit = () => {
         post(name, link, major, tags, status).then(res => {
             closePost();
             getData();
+        }).catch(e => {
+            setPostError("Please ensure that name, link, major, comma or space separated tags, and appropriate status is set for resumes!");
         })
     }
 
@@ -327,6 +331,7 @@ export default function Main() {
                         {auth && <TextField id="status" label="Approved/Pending" variant="outlined" onInput={e => setStatus(e.target.value)} />}
                         <TextField id="major" label="Major" variant="outlined" onInput={e => setMajor(e.target.value)} />
                         {studentAuth && <FormControlLabel control={<Checkbox checked={privacy} onChange={handleChange} name="privacy" />} label="By checking this box you agree to all privacy policies." />}
+                        {postError && <Typography color="common.red">{postError}</Typography>}
                         {auth && <Button onClick={postSubmit} color="inherit">Post Resume</Button>}
                         {studentAuth && <Button disabled={!privacy} onClick={postSubmit} color="inherit">Post Resume</Button>}
                     </Box>
