@@ -29,3 +29,10 @@ export function update(id) {
             "approved": "approved"
     })
 }
+
+export function newComment(id, commenter, message) {
+    return axios.put("https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/comment/" + id, {
+        "name" : commenter,
+        "comment" : message
+    }) 
+}

@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import Unauthenticated from "./Unauthenticated";
+import Viewer from "./Viewer";
 import { AppBar, Toolbar, Typography, Modal, Box, TextField, Button, IconButton, FormControlLabel, Checkbox } from "@mui/material";
 import { Home } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
@@ -8,7 +9,7 @@ import ClearIcon from '@material-ui/icons/Clear';
 import SearchIcon from '@material-ui/icons/Search';
 import { createTheme } from '@material-ui/core/styles';
 import { makeStyles } from '@material-ui/styles';
-import { getAll, post, update, del } from "../services/ResumeService";
+import { getAll, post, update, del, get } from "../services/ResumeService";
 
 // Data Grid Toolbar styles
 function escapeRegExp(value) {
@@ -97,6 +98,9 @@ export default function Main() {
     const openPost = () => setModalPost(true);
     const closePost = () =>  { setModalPost(false); setPostError(null);  setName(null); setStatus("pending");
         setLink(null); setMajor(null); setTags(null);};
+    const viewerOpen = () => setResumeViewer(true);
+    const viewerClose = () => setResumeViewer(false);
+    const [resumeViewer, setResumeViewer] = React.useState(false);
 
     //Form value handlers
     const [name, setName] = React.useState(null);
@@ -156,6 +160,7 @@ export default function Main() {
 
     //set last checked row
     const [currentId, setCurrentId] = React.useState(null);
+    const [currentResume, setCurrentResume] = React.useState(null);
 
     //api functions
     const getData = () => {
@@ -199,6 +204,14 @@ export default function Main() {
             getData();
         })
     }
+
+    const viewResume = () => {
+        get(currentId).then(res => {
+            setCurrentResume(res.data);
+            viewerOpen();
+        })
+    }
+
     const postSubmit = () => {
         post(name, link, major, tags, status).then(res => {
             closePost();
@@ -235,7 +248,7 @@ export default function Main() {
                         variant="contained"
                         size="small"
                         style={{ marginLeft: 16 }}
-                        href={col.value}
+                        onClick={viewResume}
                         target="_blank">View</Button>
                     <Button
                         variant="contained"
@@ -264,7 +277,7 @@ export default function Main() {
                     <Button
                         variant="contained"
                         size="small"
-                        href={col.value}
+                        onClick={viewResume}
                         target="_blank"
                         style={{ marginLeft: 16 }}>View</Button>
                     <Button
@@ -288,7 +301,7 @@ export default function Main() {
             renderCell: (col) => (
                 <strong>
                     <Button
-                        href={col.value}
+                        onClick={viewResume}
                         target="_blank"
                         variant="contained"
                         size="small"
@@ -337,6 +350,9 @@ export default function Main() {
                     </Box>
                 </Modal>
             </header>
+            <Modal open={resumeViewer} onClose={viewerClose}>
+                <Viewer resume={currentResume}></Viewer>
+            </Modal>
             {!auth && !studentAuth && <Unauthenticated></Unauthenticated>}
 
             {/* STUDENT USER VIEW */}
