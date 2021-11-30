@@ -9,9 +9,6 @@ export default function Unauthenticated() {
                 Welcome to the Honors Carolina Resume App!
             </Typography>
             <Typography mt={2} mb={2} pb={3} id="modal-modal-title" variant="p" component="p">
-                This is a bare bones skeleton of the app. At the moment the authentication via Shiolbeth sso is not setup
-                so put in any value for login/password
-
                 Our backend endpoint is hosted on an ExpressJS API on Openshift @
                 https://honor-carolina-resume-backend-rnarveka.apps.cloudapps.unc.edu/resumes
             </Typography>

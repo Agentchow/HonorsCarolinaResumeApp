@@ -21,15 +21,15 @@ export default function Viewer({resume}) {
 
     const style = {
         position: 'absolute',
+        height: 500,
+        width: 550,
+        overflowY: 'scroll',
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '60%',
         bgcolor: 'background.paper',
         border: '2px solid #000',
         boxShadow: 24,
-        p: 4,
-        '& > :not(style)': { m: 1, width: '50ch' }
     };
 
     let comments = [];
@@ -37,7 +37,7 @@ export default function Viewer({resume}) {
     if(resume.comments.length !== 0) {
         resume.comments.forEach(comment => {
             comments.push(
-                <Typography id="modal-modal-title" variant="h6" component="h2">
+                <Typography id="modal-modal-title" variant="p" component="p">
                     <strong>{comment.name}</strong>: {comment.comment}
                 </Typography>
             )
@@ -51,23 +51,29 @@ export default function Viewer({resume}) {
     }
 
     return (
-        <Box sx={style}>
-            <Typography id="modal-modal-title" variant="h2" component="h2">
+        <Box sx={style} style={{margin: "auto"}}>
+            <Typography id="modal-modal-title" variant="h2" component="h2" pl={2} pb={1} pt={2} pr={2}>
                 {resume.name}
             </Typography>
-            <iframe title="resume" src={resume.link} height="250" width="100%"></iframe>
-            <Typography id="modal-modal-title" variant="h4" component="h4">
-                <strong>Comments</strong>
+            <Box pr={2} pl={2}>
+            <iframe title="resume" src={resume.link} height="200" width="500" style={{padding: 2}}></iframe>
+            </Box>
+            <Typography id="modal-modal-title" variant="h4" component="h4" pl={2} pb={1} pt={2} pr={2}>
+                Comments
             </Typography>
-            <div id ="comment-holder" >
+            <Box id ="comment-holder" pr={2} pl={2}>
                 {comments}
-            </div>
-            <Typography id="modal-modal-title" variant="h4" component="h4">
-                <strong >New Comment</strong>
+            </Box>
+            <Typography id="modal-modal-title" variant="h6" component="h6" pl={2} pb={1} pt={2} pr={2}security=''>
+                New Comment
             </Typography>
-            <TextField id="commenter" label="Name" variant="outlined" onInput={e => setCommenter(e.target.value)} />
-            <TextField id="message" label="comment" variant="outlined" onInput={e => setMessage(e.target.value)} />
-            <Button onClick={postSubmit} color="inherit">Post</Button>
+            <Box pr={2} pl={2}>
+                <TextField id="commenter" label="Name" variant="outlined" size="small" pr={2} onInput={e => setCommenter(e.target.value)}/>
+                <TextField id="message" label="Comment" variant="outlined" size="small" onInput={e => setMessage(e.target.value)}/>
+            </Box>
+            <Box p={2}>
+                <Button onClick={postSubmit} color="inherit" p={2}>Post</Button>
+            </Box>
         </Box>
     )
 }
